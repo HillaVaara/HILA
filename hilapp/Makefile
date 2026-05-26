@@ -34,11 +34,22 @@
 
 
 
-# First, let's find out what distro we have
-DISTRO := $(shell cat /etc/*-release | grep -iE "^(ID=)" | cut -f2 -d"=")
+# Check whether Linux or macOS
+UNAME := $(shell uname -s)
 
 $(info --------------------------------------------------------------)
+ifeq ($(UNAME), Linux)
+# Check for distro if using Linux
+DISTRO := $(shell cat /etc/*-release | grep -iE "^(ID=)" | cut -f2 -d"=")
 $(info We are on $(DISTRO) distribution)
+else
+ifeq ($(UNAME), Darwin)
+DISTRO := Darwin
+$(info We are using macOS $(DISTRO))
+else
+$(info Unknown operating system)
+endif
+endif
 $(info --------------------------------------------------------------)
 
 ## Then, find out the llvm version, either from LLVM_VERSION variable or
@@ -241,6 +252,11 @@ ifeq ($(DISTRO), arch)
 ifeq ($(STATIC),)
 	CLANG_LIBS = -lclang-cpp
 endif
+endif
+
+# this seems to work for macOS (Darwin 25.5.0)
+ifeq ($(DISTRO), Darwin)
+	CLANG_LIBS = -lclang-cpp
 endif
 
 # Sources for this project
